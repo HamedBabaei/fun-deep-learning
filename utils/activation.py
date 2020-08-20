@@ -34,7 +34,7 @@ def softmax(x):
     Returns:
       s: a numpy matrix equal to the softmax of x
     '''
-    x_exp = np
+    x_exp = np.exp(x)
     x_sum = np.sum(x_exp, axis=1, keepdims=True) #axis=1 for rows
     s = x_exp/x_sum
     return s
