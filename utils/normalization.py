@@ -13,3 +13,8 @@ def normalize_rows(x):
     x = x/x_norm
     return x
 
+def normalize_image(X):
+     '''
+     x/255: X must be flatten
+     '''
+     return X/255.
