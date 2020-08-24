@@ -11,6 +11,17 @@ class LogisticRegression:
         pass
 
     def __propagate(self, w, b, X, Y):
+        '''
+            Forward and backward propagation implementation
+        Arguments:
+            w(numpy): for hodling weight
+            b 
+            X
+            Y
+        Returns:
+            grads:
+            cost:
+        '''
         #Forward propagation
         m = X.shape[1]
         A = sigmoid(np.dot(w.T,X) + b)
@@ -23,6 +34,21 @@ class LogisticRegression:
         return grads, cost
 
     def __optimize(self, w, b, X, Y, num_iterations, learning_rate, verbose = False):
+        '''
+           train model to optmize its weights
+        Arguments:
+           w
+           b
+           X
+           Y
+           num_iterations
+           learning_rate
+           verbose(bool): to dipslay costs after each iteration
+        Returns:
+           params:
+           grads:
+           costs:
+        '''
         costs = []
         for i in range(num_iterations):
             grads, cost = self.__propagate(w, b, X, Y)
@@ -40,6 +66,15 @@ class LogisticRegression:
         return params, grads, costs
 
     def __predict(self, w, b, X):
+        '''
+          Make a prediction using pre-trained weights
+        Arguments:
+          w:
+          b:
+          X(numpy): a numpy 2d array as a input features for samples
+        Returns:
+          Y_predictions(int): a prediction of the model
+        '''
         m = X.shape[1]
         Y_prediction = np.zeros((1,m))
         w = w.reshape(X.shape[0], 1)
@@ -53,8 +88,9 @@ class LogisticRegression:
         return Y_prediction
     
 
-    def model(self, X_train, Y_train, X_test, Y_test, 
-             num_iterations = 2000, learning_rate = 0.5, verbose = False):
+    def fit(self, X_train, Y_train, X_test, Y_test, 
+             num_iterations = 2000, learning_rate = 0.5, 
+             verbose = False, output_pretrained_parameters = False):
 
         w, b = initialize_with_zeros(X_train.shape[0])
 
@@ -74,9 +110,17 @@ class LogisticRegression:
         self.d = {"costs": costs, "Y_prediction_test": Y_prediction_test, 
             "Y_prediction_train" : Y_prediction_train, "w" : w,  "b" : b,
             "learning_rate" : learning_rate, "num_iterations": num_iterations}
-        return self.d
+        if output_pretrained_parameters:
+            return self.d
 
-        def predict(self, X):
-            return self.__predict(self.d['w'], self.d['b'], X)
+    def predict(self, X):
+        '''
+            A general method for calling from user side to make prediction
+        Arguments:
+            X: input features
+        Returns:
+            prediction(int): model predictions
+        '''
+        return self.__predict(self.d['w'], self.d['b'], X)
 
 
