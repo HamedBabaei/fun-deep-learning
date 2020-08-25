@@ -15,6 +15,14 @@ def normalize_rows(x):
 
 def normalize_image(X):
      '''
-     x/255: X must be flatten
+        Image (b=count, c=width, d=height, a=channels(rgb = 3)) where 
+        Flatted image Xi is (b*c*d, a)
+
+        Flatted image Xi normalization by divide 255
+     Argument: 
+          X: a numpy matrix of shape (b*c*d, a)
+     return:
+          norm: normalized image
      '''
-     return X/255.
+     norm = X/255.
+     return norm
