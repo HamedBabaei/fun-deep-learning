@@ -1,5 +1,4 @@
-import sys
-sys.path.append("..")
+import __init__
 import unittest
 import numpy as np
 import activation

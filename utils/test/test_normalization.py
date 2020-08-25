@@ -1,5 +1,4 @@
-import sys
-sys.path.append("..")
+import __init__
 import unittest
 import normalization
 import numpy as np
