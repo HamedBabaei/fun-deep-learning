@@ -1,26 +1,25 @@
 '''
 Implementation of Logistic Regression with Neural Network Mindset
 '''
-import __init__
 import numpy as np
+import __init__
 from utils.activation import sigmoid
 from utils.base import initialize_with_zeros
 
 class LogisticRegression:
-    def __init__(self):
-        pass
-
     def __propagate(self, w, b, X, Y):
         '''
             Forward and backward propagation implementation
         Arguments:
-            w(numpy): for hodling weight
-            b 
-            X
-            Y
+            w(numpy): for hodling weight with shape of (num_px * num_px * 3, 1)
+            b(int)  : bias a scalar
+            X       : data of size (num_px * num_px * 3, number of examples)
+            Y       : true labels
         Returns:
-            grads:
-            cost:
+            grads: dictionary with following keys:
+                dw  : gradient of the loss with respect to w, thus same shape as w
+                db  : gradient of the loss with respect to b, thus same shape as b
+            cost: negative log-likelihood cost for logistic regression
         '''
         #Forward propagation
         m = X.shape[1]
@@ -37,10 +36,10 @@ class LogisticRegression:
         '''
            train model to optmize its weights
         Arguments:
-           w
-           b
-           X
-           Y
+           w(numpy): for hodling weight with shape of (num_px * num_px * 3, 1)
+           b(int)  : bias a scalar
+           X       : data of size (num_px * num_px * 3, number of examples)
+           Y       : true labels
            num_iterations
            learning_rate
            verbose(bool): to dipslay costs after each iteration
@@ -69,9 +68,9 @@ class LogisticRegression:
         '''
           Make a prediction using pre-trained weights
         Arguments:
-          w:
-          b:
-          X(numpy): a numpy 2d array as a input features for samples
+          w(numpy): for hodling weight with shape of (num_px * num_px * 3, 1)
+          b(int)  : bias a scalar
+          X       : data of size (num_px * num_px * 3, number of examples)
         Returns:
           Y_predictions(int): a prediction of the model
         '''
