@@ -3,14 +3,15 @@ This is my repository for my works on Deep Learning Specialization course - I am
 
 ### Course 1
 
-**NOTE:** `follow tag` **`course1`** `on git commands for this course`
-
 * Week 1: Intorductions
-* Week 2: Follow tag `course1-week2` git commands
-     * loss function implementation `L1`, `L2` methods (`utils/loss.py`)
-     * convert image to vector `image2vector` method (`utils/image.py`)
-     * activation functions like `sigmoid` , `softmax`, and `sigmoid_derivative` methods(`utils/activation.py`)
-     * LogisticRegression model with Neural Network mindset(`logisticregression` dir)
-     * Dataset `dataset/catvnotcat` were used for this week
+* Week 2: (follow `course1-week2` label on git commants to check changes)
+     * loss function implementations `L1`, `L2` methods added. (`utils/loss.py`)
+     * image utils `image2vector`, `display_image`, `flatten_X`, and `standardize_dataset` methods added. (`utils/image.py`)
+     * activation functions `sigmoid` , `softmax`, and `sigmoid_derivative` methods added.(`utils/activation.py`)
+     * base utils, `initialize_with_zeros` and `plot_cost_function` added. (`utils/base.py`)
+     * dataloader utils for loading different datasets added.(`utils/dataloader.py`)
+     * normalization methods `normalize_image` and `normalize_rows` methods added.(`utils/normalization.py`)
+     * **LogisticRegression model with Neural Network mindset** a `logisticregression` directory with its own files added.
+     * Dataset `dataset/catvnotcat` were used for this week added to dataset dir.
 
    
