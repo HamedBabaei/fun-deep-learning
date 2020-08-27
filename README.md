@@ -1,10 +1,12 @@
 # Fun Deep Learning
 This is my repository for my works on Deep Learning Specialization course - I am going to make it more fun.
 
-### Course 1
+### Course 1: 
+
+**Note**: Course label is **`Course1`** for tracking all changes for this week 
 
 * Week 1: Intorductions
-* Week 2: (follow `course1-week2` label on git commants to check changes)
+* Week 2: Week label is **`Course1-Week2`** for tracking the changes
      * loss function implementations `L1`, `L2` methods added. (`utils/loss.py`)
      * image utils `image2vector`, `display_image`, `flatten_X`, and `standardize_dataset` methods added. (`utils/image.py`)
      * activation functions `sigmoid` , `softmax`, and `sigmoid_derivative` methods added.(`utils/activation.py`)
