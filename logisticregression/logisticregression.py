@@ -4,10 +4,16 @@ Implementation of Logistic Regression with Neural Network Mindset
 import numpy as np
 import __init__
 from utils.activation import sigmoid
+from utils.image import flatten_X
 from utils.base import initialize_with_zeros
+from PIL import Image
+from scipy import ndimage
+import scipy.misc
+import imageio
 
 class LogisticRegression:
-    def __propagate(self, w, b, X, Y):
+    
+    def propagate(self, w, b, X, Y):
         '''
             Forward and backward propagation implementation
         Arguments:
@@ -32,7 +38,7 @@ class LogisticRegression:
         grads = {"dw": dw,"db": db}
         return grads, cost
 
-    def __optimize(self, w, b, X, Y, num_iterations, learning_rate, verbose = False):
+    def optimize(self, w, b, X, Y, num_iterations, learning_rate, verbose = False):
         '''
            train model to optmize its weights
         Arguments:
@@ -44,13 +50,13 @@ class LogisticRegression:
            learning_rate
            verbose(bool): to dipslay costs after each iteration
         Returns:
-           params:
-           grads:
-           costs:
+           params: {"w": w, "b": b}
+           grads: {"dw": dw,"db": db}
+           costs: list of costs per 100 iterations
         '''
         costs = []
         for i in range(num_iterations):
-            grads, cost = self.__propagate(w, b, X, Y)
+            grads, cost = self.propagate(w, b, X, Y)
             dw = grads["dw"]
             db = grads["db"]
             w = w - learning_rate * dw
@@ -63,8 +69,8 @@ class LogisticRegression:
         params = {"w": w, "b": b}
         grads = {"dw": dw,"db": db}
         return params, grads, costs
-
-    def __predict(self, w, b, X):
+    
+    def predict_(self, w, b, X):
         '''
           Make a prediction using pre-trained weights
         Arguments:
@@ -78,37 +84,59 @@ class LogisticRegression:
         Y_prediction = np.zeros((1,m))
         w = w.reshape(X.shape[0], 1)
         A = sigmoid(np.dot(w.T,X) + b) 
-        for i in range(A.shape[1]):
-            if A[0,i] <= 0.5:
-                Y_prediction[0,i] = 0
-            else:
-                Y_prediction[0, i] = 1
+        #unvectorized way
+        #for i in range(A.shape[1]):
+        #    if A[0,i] <= 0.5:
+        #        Y_prediction[0,i] = 0
+        #    else:
+        #        Y_prediction[0,i] = 1
 
+        # and vectorized way
+        Y_prediction[0,:] = 1
+        Y_prediction[0, A[0,:] <= 0.5] = 0
         return Y_prediction
     
 
     def fit(self, X_train, Y_train, X_test, Y_test, 
              num_iterations = 2000, learning_rate = 0.5, 
              verbose = False, output_pretrained_parameters = False):
-
+        '''
+           Creating LogisticRegression model with Neural Network Mindset
+        Arguments:
+           X_train                      : a numpy array of shape (num_px * num_px * 3, m_train)
+           Y_train                      : a numpy vector of shape (1, m_train)
+           X_test                       : a numpy array of shape (num_px * num_px * 3, m_test)
+           Y_test                       : a numpy vector of shape (1, m_test)
+           num_iterations               : train iterations
+           learning_rate                : a learning rate of model,
+           verbose                      : display training status
+           output_pretrained_parameters : return model pretrained parameters
+        returns:
+           d(dict): a dictionary containing information about the model
+        '''
         w, b = initialize_with_zeros(X_train.shape[0])
 
-        parameters, grads, costs = self.__optimize(w, b, X_train, Y_train, 
+        parameters, grads, costs = self.optimize(w, b, X_train, Y_train, 
                                                    num_iterations= num_iterations, 
                                                    learning_rate = learning_rate, 
                                                    verbose= verbose)
 
         w = parameters["w"]
         b = parameters["b"]
-        Y_prediction_test = self.__predict(w, b, X_test)
-        Y_prediction_train = self.__predict(w, b, X_train)
+        Y_prediction_test = self.predict_(w, b, X_test)
+        Y_prediction_train = self.predict_(w, b, X_train)
 
         print("train accuracy: {} %".format(100 - np.mean(np.abs(Y_prediction_train - Y_train)) * 100))
         print("test accuracy: {} %".format(100 - np.mean(np.abs(Y_prediction_test - Y_test)) * 100))
 
-        self.d = {"costs": costs, "Y_prediction_test": Y_prediction_test, 
-            "Y_prediction_train" : Y_prediction_train, "w" : w,  "b" : b,
-            "learning_rate" : learning_rate, "num_iterations": num_iterations}
+        self.d = {"costs": costs, 
+                  "Y_prediction_test": Y_prediction_test, 
+                  "Y_prediction_train" : Y_prediction_train, 
+                  "w" : w, "dw":grads['dw'],  
+                  "b" : b, "db":grads['db'],
+                  "learning_rate" : learning_rate, 
+                  "num_iterations": num_iterations}
+
         if output_pretrained_parameters:
             return self.d
 
@@ -120,6 +148,18 @@ class LogisticRegression:
         Returns:
             prediction(int): model predictions
         '''
-        return self.__predict(self.d['w'], self.d['b'], X)
-
-
+        return self.predict_(self.d['w'], self.d['b'], X)
+    
+    def predict_by_image(self, path_to_image, dim = (64,64)):
+        '''
+           prediction by preprocessing for prediction
+        Arguments:
+           path_to_image
+           dim(touple): for reszing image
+        returns:
+           predict_
+        '''
+        image = np.array(imageio.imread(path_to_image))  # read a standard image
+        image = image/255.
+        image.resize((dim[1]*dim[1]*3, 1))
+        return self.predict(image)[0]
