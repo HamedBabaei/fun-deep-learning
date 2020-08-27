@@ -6,7 +6,7 @@ This is my repository for my works on Deep Learning Specialization course - I am
 **Note**: Course label is **`Course1`** for tracking all changes for this week 
 
 * Week 1: Intorductions
-* Week 2: Week label is **`Course1-Week2`** for tracking the changes
+* Week 2: Logistic Regression as a Neural Network and Python Basics with Numpy. This week label is **`Course1-Week2`** for tracking the changes
      * loss function implementations `L1`, `L2` methods added. (`utils/loss.py`)
      * image utils `image2vector`, `display_image`, `flatten_X`, and `standardize_dataset` methods added. (`utils/image.py`)
      * activation functions `sigmoid` , `softmax`, and `sigmoid_derivative` methods added.(`utils/activation.py`)
