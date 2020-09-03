@@ -103,11 +103,69 @@ def backward_propagation(parameters, cache, X, Y):
    return grads
 
 def update_parameters(parameters, grads, learning_rate = 1.2):
-   pass
+   '''
+      Update parameters using gradient descent
+   Arguments:
+      parameters: dictionary contains {"W1":W1, "b1":b1, "W2":W2, "b2":b2}
+      grads: dictionary contains {"dW1": dW1, "db1":db1, "dW2": dW2, "db2":db2}
+      learning_rate: steps of gradient descent
+   Returns:
+      parameters: dictionary contains {"W1":W1, "b1":b1, "W2":W2, "b2":b2} which updated
+   '''
+   W1 = parameters['W1']
+   b1 = parameters['b1']
+   W2 = parameters['W2']
+   b2 = parameters['b2']
+
+   dW1 = grads['dW1']
+   db1 = grads['db1']
+   dW2 = grads['dW2']
+   db2 = grads['db2']
+
+   W1 = W1 - learning_rate*dW1
+   b1 = b1 - learning_rate*db1
+   W2 = W2 - learning_rate*dW2
+   b2 = b2 - learning_rate*db2
+
+   parameters = {"W1":W1, "b1":b1, "W2":W2, "b2":b2}
+   return parameters
 
 def nn_model(X, Y, n_h, num_iterations = 10000, print_cost=False, learning_rate = 1.2):
-   pass
+   '''
+      Neural Network Classifier
+   Arguments:
+      X : datasate of shape (number of features( here is 2), number of examples)
+      Y : labels of shape  (1, number of examples)
+      n_h: size of the hidden layer
+      num_iterations: number of iterations in gradient descent loop
+      print_cost: verbose
+   Return:
+      parameters: {"W1":W1, "b1":b1, "W2":W2, "b2":b2}
+   '''
+   np.random.seed(3)
+   n_x = layer_size(X, Y)[0]
+   n_y = layer_size(X, Y)[2]
+   
+   parameters = initialize_parameters(n_x, n_h, n_y)
+   for i in range(0, num_iterations):
+      A2, cache = forward_propagation(X, parameters)
+      cost = compute_cost(A2, Y)
+      grads = backward_propagation(parameters, cache, X, Y)
+      parameters = update_parameters(parameters, grads, learning_rate=learning_rate)
+      if print_cost and i%1000 == 0:
+         print_cost("Cost after iteration %i: %f"%(i, cost))
+   return parameters
 
 def predict(parameters, X):
-   pass
+   '''
+      Make Prediction using learned parameters
+   Arguments:
+      parameters: {"W1":W1, "b1":b1, "W2":W2, "b2":b2}
+      X: input data of size (n_x, m)
+   Returns:
+      predictions: vector of predictions of the model
+   '''
+   A2, catch = forward_propagation(X, parameters)
+   predictions = (A2 > 0.5)
+   return predictions
 
