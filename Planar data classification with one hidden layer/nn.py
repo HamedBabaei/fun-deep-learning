@@ -139,6 +139,7 @@ def nn_model(X, Y, n_h, num_iterations = 10000, print_cost=False, learning_rate 
       n_h: size of the hidden layer
       num_iterations: number of iterations in gradient descent loop
       print_cost: verbose
+      learning_rate: learning rate
    Return:
       parameters: {"W1":W1, "b1":b1, "W2":W2, "b2":b2}
    '''
@@ -153,7 +154,7 @@ def nn_model(X, Y, n_h, num_iterations = 10000, print_cost=False, learning_rate 
       grads = backward_propagation(parameters, cache, X, Y)
       parameters = update_parameters(parameters, grads, learning_rate=learning_rate)
       if print_cost and i%1000 == 0:
-         print_cost("Cost after iteration %i: %f"%(i, cost))
+         print("Cost after iteration %i: %f"%(i, cost))
    return parameters
 
 def predict(parameters, X):
@@ -169,3 +170,50 @@ def predict(parameters, X):
    predictions = (A2 > 0.5)
    return predictions
 
+
+class NN:
+   
+   def __init__(self, hidden_layer_size = 5, num_iterations = 10000, learning_rate = 1.2):
+      '''
+         Neural Network Class init
+      Arguments:
+         hidden_layer_size: size of the hidden layer
+         num_iterations: number of iterations in gradient descent loop
+         learning_rate: learning rate
+      Return:
+         None
+      '''
+      self.n_h = hidden_layer_size
+      self.num_iterations = num_iterations
+      self.learning_rate = learning_rate
+   
+   def fit(self, X, Y, verbose = False):
+      '''
+         Neural Network fit module
+      Arguments:
+         X : datasate of shape (number of features( here is 2), number of examples)
+         Y : labels of shape  (1, number of examples)
+         verbose
+      Return:
+         None
+      '''
+      self.parameters = nn_model(X, Y, n_h = self.n_h, 
+                                 num_iterations = self.num_iterations,
+                                 print_cost=verbose, 
+                                 learning_rate = self.learning_rate)
+                                    
+   def model(self, X, Y, verbose=False):
+      return nn_model(X, Y, n_h = self.n_h, 
+                      num_iterations = self.num_iterations,
+                      print_cost=verbose, 
+                      learning_rate = self.learning_rate)
+                      
+   def predict(self, X):
+      '''
+         Make Prediction using learned parameters
+      Arguments:
+         X: input data of size (n_x, m)
+      Returns:
+         predictions: vector of predictions of the model
+      '''
+      return predict(self.parameters, X)
