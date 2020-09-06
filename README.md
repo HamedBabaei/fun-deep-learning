@@ -15,5 +15,14 @@ This is my repository for my works on Deep Learning Specialization course - I am
      * normalization methods `normalize_image` and `normalize_rows` methods added.(`utils/normalization.py`)
      * **LogisticRegression model with Neural Network mindset** a directory with its own files added.
      * Dataset `dataset/catvnotcat` were used for this week added to dataset dir.
+* Week 3: **Planar data classification with one hidden layer** directory
+     * `nn.py` consist of nn model for classification of planner data, with an `NN` class
+     * `test_nn.py` contains unit tests
+     * `util.py` for visualization
+     * `nn.ipynb` is a jupyter notebook file for demo of classification
+
+
+
+
 
    
