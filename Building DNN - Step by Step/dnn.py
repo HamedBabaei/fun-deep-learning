@@ -25,7 +25,7 @@ def initialize_parameters_deep(layer_dims):
     Arguments:
         layer_dims: list of units for each layers
     Returns:
-         parameters: a dictionary containing parameters "W1", "b1",......"WL","bL"
+        parameters: a dictionary containing parameters "W1", "b1",......"WL","bL"
     '''
     np.random.seed(1)
     parameters = {}
@@ -67,4 +67,49 @@ def linear_activation_forward(A_prev, W, b, activation):
     A, activation_cache = acts[activation](Z)
     cache = (linear_cache, activation_cache)
     return A, cache
+
+def L_model_forward(X, parameters):
+    '''
+        Implementation of forward propagation for [LINEAR->RELU]*(L-1) -> LINEAR->SIGMOID
+    Arguments:
+        X: a data which is a numpy aray with shape of (input size, number of examples)
+        parameters: output of initialization_parameters_deep()
+    Returns:
+        AL: post activation value
+        caches: list of catesh containing every cache of linear_activation_forward()
+                (L-1 of them, indexed from 0 to L - 1)
+    '''
+    caches = []
+    A = X
+    L = len(parameters)//2
+    for l in range(1, L):
+        A_prev = A
+        A, cache = linear_activation_forward(A_prev, 
+                                             parameters["W"+str(l)], 
+                                             parameters["b"+str(l)], 
+                                             activation="relu")
+        caches.append(cache)
+    AL, cache = linear_activation_forward(A,
+                                          parameters["W"+str(l+1)], 
+                                          parameters["b"+str(l+1)], 
+                                          activation="sigmoid")
+    caches.append(cache)
+    return AL, caches
+
+def compute_cost(AL, Y):
+    '''
+        Implement the cost function
+    Argument:
+        AL: probability vector corresponding to your label predictions in shape of (1, number of examples)
+        Y: truth label
+    Returns:
+        cost: cross entropy cost
+    '''
+    m = Y.shape[1]
+    cost = (-1/m)*np.sum(Y*np.log(AL) + (1-Y)*np.log(1-AL))
+    cost = np.squeeze(cost)
+    return cost
+
+
+
 
