@@ -20,7 +20,7 @@ This is my repository for my works on Deep Learning Specialization course - I am
      * `test_nn.py` contains unit tests
      * `util.py` for visualization
      * `nn.ipynb` is a jupyter notebook file for demo of classification
-
+* Week 4: **Buidling DNN-Step by Step for CatvsNot Classification**
 
 **Extra and useful links:**
 * https://www.cs.ryerson.ca/~aharley/neural-networks/
