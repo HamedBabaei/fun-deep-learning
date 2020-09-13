@@ -110,6 +110,40 @@ def compute_cost(AL, Y):
     cost = np.squeeze(cost)
     return cost
 
+def linear_backward(dZ, cache):
+    '''
+        Implement the linear portion of backward propagation
+    Arguments:
+        dZ:  gradient of the cost with respect to the linear output
+        cache: touple of (A_prev, W, b)
+    returns:
+        dA_prev, gradient of the cost with respect to A
+        dW,  gradient of the cost with respect to w
+        db,  gradient of the cost with respect to b
+    '''
+    A_prev, W, b = cache
+    m = A_prev.shape[1]
+    dW = (1/m)*np.dot(dZ, A_prev.T)
+    db = (1/m)*np.sum(dZ, axis=1, keepdims=True)
+    dA_prev = np.dot(W.T, dZ)
+    return dA_prev, dW, db
 
 
+def linear_activation_backward(dA, cache, activation):
+    '''
+        Implement the backward propagation for the LINEAR->ACTIVATION layer
+    Arguments:
+        dA: post activation gradient for current layer l
+        cache: tuple of values (linear_cache, activation_cache)
+        activation: activation to be used in this layer (relu or sigmoid)
+    Returns:
+        dA_prev: gradient of the cost with respect to activaton of previews layer (l-1)
+        dW: gradient of the cost with respect to W
+        db: gradient of the cost with respect to b
+    '''
+    acts = {"sigmoid":activations.sigmoid_backward, "relu":activations.relu_backward}
+    linear_cache, activation_cache = cache
+    dZ = acts[activation](dA, activation_cache)
+    dA_prev, dW, db = linear_backward(dZ, linear_cache)
+    return dA_prev, dW, db
 
