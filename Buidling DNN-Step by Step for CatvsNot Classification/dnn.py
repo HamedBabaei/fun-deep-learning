@@ -128,7 +128,6 @@ def linear_backward(dZ, cache):
     dA_prev = np.dot(W.T, dZ)
     return dA_prev, dW, db
 
-
 def linear_activation_backward(dA, cache, activation):
     '''
         Implement the backward propagation for the LINEAR->ACTIVATION layer
@@ -146,4 +145,53 @@ def linear_activation_backward(dA, cache, activation):
     dZ = acts[activation](dA, activation_cache)
     dA_prev, dW, db = linear_backward(dZ, linear_cache)
     return dA_prev, dW, db
+
+def L_model_backward(AL, Y, caches):
+    '''
+        Implement the backward propogation for the [LINEAR->RELU]*(L-1) -> LINEAR -> SIGMOID group
+    Arguments:
+        AL: probability vector of the L_model_forward()
+        Y: true label vector
+        caches: list of cahces containing lists of ((A, W, b), Z)
+    Returns:
+        grads: a dictionary with the gradients {'dA1': -, 'dW1': -, 'db1': -}
+    '''
+    grads = {}
+    L = len(caches)
+    #m = AL.shape[1]
+    Y = Y.reshape(AL.shape)
+    #Initialize backpropagation
+    dAL = - (np.divide(Y, AL) - np.divide(1 - Y, 1 - AL))
+    # Lth layer (SIGMOID->LINEAR)
+    current_cache = caches[L-1]
+    grads['dA'+str(L-1)], grads['dW'+str(L-1)], grads['db'+str(L-1)] = \
+                linear_activation_backward(dAL, current_cache, activation='sigmoid')
+    for l in reversed(range(L-1)):
+        current_cache = caches[l]
+        dA_prev_tmp, dW_tmp, db_tmp = linear_activation_backward(grads['dA'+str(l+1)], current_cache, activation='relu')
+        grads['dA'+str(l)] = dA_prev_tmp
+        grads['dW'+str(l+1)] = dW_tmp
+        grads['db'+str(l+1)] = db_tmp
+    return grads
+
+def update_parameters(parameters, grads, learning_rate):
+    '''
+        Update parameters using gradient descent
+    Arguments:
+        parameters: python dictionary containing parameters {W1: -, b1: -, ....}
+        grads: python dictionary containing gradients output of L_model_backward
+    Returns:
+        parameters: python dictionary containing updated parameters
+    '''
+    L = len(parameters)//2
+    for l in range(L):
+        parameters['W'+str(l+1)] = parameters['W'+str(l+1)] - learning_rate*grads['dW'+str(l+1)]
+        parameters['b'+str(l+1)] = parameters['b'+str(l+1)] - learning_rate*grads['db'+str(l+1)]
+    return parameters
+
+
+
+
+
+
 
