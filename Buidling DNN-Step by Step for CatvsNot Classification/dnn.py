@@ -190,8 +190,26 @@ def update_parameters(parameters, grads, learning_rate):
     return parameters
 
 
+class DNN:
+
+   def __init__(self):
+      pass
+   
+   def fit(self, X, Y, verbose = False):
+      pass
+                          
+   def model(self, X, Y, verbose=False):
+      pass
+                      
+   def predict(self, X):
+      pass
 
 
+class LLayerModel(DNN):    
+    def __init__(self):
+        pass
 
+class TwoLayerDNN(DNN):
 
-
+    def __init__(self):
+        pass
