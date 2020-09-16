@@ -1,5 +1,6 @@
 import numpy as np
 import activations
+import matplotlib.pyplot as plt
 
 def initialize_parameters(n_x, n_h, n_y):
     '''
@@ -189,27 +190,135 @@ def update_parameters(parameters, grads, learning_rate):
         parameters['b'+str(l+1)] = parameters['b'+str(l+1)] - learning_rate*grads['db'+str(l+1)]
     return parameters
 
+def two_layer_model(X, Y, layers_dims, learning_rate=0.0075, 
+                    num_iterations=3000, print_cost=False, plot_cost=False):
+    np.random.seed(1)
+    grads = {}
+    costs = []
+    m = X.shape[1]
+    (n_x, n_h, n_y) = layers_dims
 
-class DNN:
+    parameters = initialize_parameters(n_x, n_h, n_y)
+    W1 = parameters['W1']
+    b1 = parameters['b1']
+    W2 = parameters['W2']
+    b2 = parameters['b2']
+    for i in range(0, num_iterations):
 
-   def __init__(self):
-      pass
+        A1, cache1 = linear_activation_forward(X, W1, b1, activation='relu')
+        A2, cache2 = linear_activation_forward(A1, W2, b2, activation='sigmoid')
+
+        cost = compute_cost(A2, Y)
+
+        dA2 = -(np.divide(Y, A2) - np.divide(1-Y, 1-A2))
+
+        dA1, dW2, db2 = linear_activation_backward(dA2, cache2, activation='sigmoid')
+        dA0, dW1, db1 = linear_activation_backward(dA1, cache1, activation='relu')
+
+        grads['dW1'] = dW1
+        grads['db1'] = db1
+        grads['dW2'] = dW2
+        grads['db2'] = db2
+
+        parameters = update_parameters(parameters, grads, learning_rate)
+
+        W1 = parameters['W1']
+        b1 = parameters['b1']
+        W2 = parameters['W2']
+        b2 = parameters['b2']
+
+        if print_cost and i % 100 == 0:
+            print("Cost after iteration {}: {}".format(i, np.squeeze(cost)))
+        if print_cost and i % 100 == 0:
+            costs.append(cost)
+
+    if plot_cost:
+        plt.plot(np.squeeze(costs))
+        plt.ylabel('cost')
+        plt.xlabel('iterations (per hundreds)')
+        plt.title("Learning rate =" + str(learning_rate))
+        plt.show()
+
+    return parameters
+
+def predict(X, parameters):
+    '''
+        Make Prediction using learned parameters
+    Arguments:
+        parameters: {"W1":W1, "b1":b1, "W2":W2, "b2":b2}
+        X: input data of size (n_x, m)
+    Returns:
+        predictions: vector of predictions of the model
+    ''' 
+    probas, caches = L_model_forward(X, parameters)
+    predictions = np.zeros((1,X.shape[1]))
+    for i in range(0, probas.shape[1]):
+        if probas[0,i] > 0.5:
+            predictions[0,i] = 1
+        else:
+            predictions[0,i] = 0
+    return predictions
+
+class DNN(object):
+    def __init__(self, parameters):
+        self.parameters = parameters
+
+    def fit(self):
+        pass
+
+    def model(self):
+        pass
+
+    def predict(self, X):
+        '''
+            Make Prediction using learned parameters
+        Arguments:
+            X: input data of size (n_x, m)
+        Returns:
+            predictions: vector of predictions of the model
+        '''
+        return predict(X, self.parameters)
+
+class TwoLayerModel(DNN):
    
-   def fit(self, X, Y, verbose = False):
-      pass
-                          
-   def model(self, X, Y, verbose=False):
-      pass
-                      
-   def predict(self, X):
-      pass
+    def __init__(self, layers_dims, num_iterations = 10000, learning_rate = 0.0075):
+        '''
+            Neural Network Class init
+        Arguments:
+            hidden_layer_size: size of the hidden layer
+            num_iterations: number of iterations in gradient descent loop
+            learning_rate: learning rate
+        Return:
+            None
+        '''
+        self.layers_dims = layers_dims
+        self.num_iterations = num_iterations
+        self.learning_rate = learning_rate
+        DNN.__init__(self, parameters=None)
+   
+    def fit(self, X, Y, verbose = False):
+        '''
+            Neural Network fit module
+        Arguments:
+            X : datasate of shape (number of features( here is 2), number of examples)
+            Y : labels of shape  (1, number of examples)
+            verbose
+        Return:
+            None
+        '''
+        self.parameters = two_layer_model(X, Y, self.layers_dims, 
+                                    num_iterations = self.num_iterations,
+                                    print_cost=verbose, 
+                                    learning_rate = self.learning_rate)
+                                    
+    def model(self, X, Y, verbose=False):
+        return two_layer_model(X, Y, self.layers_dims, 
+                        num_iterations = self.num_iterations,
+                        print_cost=verbose, 
+                        learning_rate = self.learning_rate)
+                        
 
 
 class LLayerModel(DNN):    
-    def __init__(self):
-        pass
-
-class TwoLayerDNN(DNN):
-
     def __init__(self):
         pass
