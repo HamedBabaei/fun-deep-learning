@@ -296,7 +296,7 @@ class TwoLayerModel(DNN):
         self.learning_rate = learning_rate
         DNN.__init__(self, parameters=None)
    
-    def fit(self, X, Y, verbose = False):
+    def fit(self, X, Y, verbose = False, plot_cost=False):
         '''
             Neural Network fit module
         Arguments:
@@ -309,7 +309,8 @@ class TwoLayerModel(DNN):
         self.parameters = two_layer_model(X, Y, self.layers_dims, 
                                     num_iterations = self.num_iterations,
                                     print_cost=verbose, 
-                                    learning_rate = self.learning_rate)
+                                    learning_rate = self.learning_rate,
+                                    plot_cost=plot_cost)
                                     
     def model(self, X, Y, verbose=False):
         return two_layer_model(X, Y, self.layers_dims, 
