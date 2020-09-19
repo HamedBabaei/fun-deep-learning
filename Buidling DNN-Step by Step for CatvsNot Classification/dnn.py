@@ -32,7 +32,8 @@ def initialize_parameters_deep(layer_dims):
     parameters = {}
     L = len(layer_dims)
     for l in range(1, L): 
-        parameters['W' + str(l)] = np.random.randn(layer_dims[l], layer_dims[l-1])*0.01
+        #parameters['W' + str(l)] = np.random.randn(layer_dims[l], layer_dims[l-1])*0.01
+        parameters['W' + str(l)] = np.random.randn(layer_dims[l], layer_dims[l-1]) / np.sqrt(layer_dims[l-1]) #*0.01
         parameters['b' + str(l)] = np.zeros((layer_dims[l],1))
     return parameters
 
@@ -165,7 +166,7 @@ def L_model_backward(AL, Y, caches):
     dAL = - (np.divide(Y, AL) - np.divide(1 - Y, 1 - AL))
     # Lth layer (SIGMOID->LINEAR)
     current_cache = caches[L-1]
-    grads['dA'+str(L-1)], grads['dW'+str(L-1)], grads['db'+str(L-1)] = \
+    grads['dA'+str(L-1)], grads['dW'+str(L)], grads['db'+str(L)] = \
                 linear_activation_backward(dAL, current_cache, activation='sigmoid')
     for l in reversed(range(L-1)):
         current_cache = caches[l]
@@ -190,8 +191,20 @@ def update_parameters(parameters, grads, learning_rate):
         parameters['b'+str(l+1)] = parameters['b'+str(l+1)] - learning_rate*grads['db'+str(l+1)]
     return parameters
 
-def two_layer_model(X, Y, layers_dims, learning_rate=0.0075, 
-                    num_iterations=3000, print_cost=False, plot_cost=False):
+def two_layer_model(X, Y, layers_dims, learning_rate=0.0075, num_iterations=3000, print_cost=False, plot_cost=False):
+    '''
+        Two layer neural network model: LINEAR->RELU->LINEAR->SIGMOID.
+    Arguments:
+        X: input data in shape of (n_x, number of examples)
+        Y: true label in shape of (1, number of examples)
+        layers_dims: dimensions of layers(n_x,n_h, n_y)
+        num_iterations: number of iterations of the optimization loop
+        learning_rate: learning rate of the gradient descent update rule
+        print_cost: printing cost per 100 iteration
+        plot_cost: ploting costs after finishing training
+    Returns:
+        parameters: a dictionary containing W1, W2, b1, and b2
+    '''
     np.random.seed(1)
     grads = {}
     costs = []
@@ -229,7 +242,43 @@ def two_layer_model(X, Y, layers_dims, learning_rate=0.0075,
 
         if print_cost and i % 100 == 0:
             print("Cost after iteration {}: {}".format(i, np.squeeze(cost)))
+        if (print_cost and i % 100 == 0) or plot_cost:
+            costs.append(cost)
+
+    if plot_cost:
+        plt.plot(np.squeeze(costs))
+        plt.ylabel('cost')
+        plt.xlabel('iterations (per hundreds)')
+        plt.title("Learning rate =" + str(learning_rate))
+        plt.show()
+
+    return parameters
+
+def L_layer_model(X, Y, layers_dims, learning_rate, num_iterations=3000, print_cost=False, plot_cost=False):
+    '''
+        L layer neural network model: [LINEAR->RELU]*(L-1)->LINEAR->SIGMOID.
+    Arguments:
+        X: input data in shape of (n_x, number of examples)
+        Y: true label in shape of (1, number of examples)
+        layers_dims: dimensions of layers(n_x,n_h, n_y)
+        num_iterations: number of iterations of the optimization loop
+        learning_rate: learning rate of the gradient descent update rule
+        print_cost: printing cost per 100 iteration
+        plot_cost: ploting costs after finishing training
+    Returns:
+        parameters: a dictionary containing W1, W2, b1, and b2
+    '''
+    np.random.seed(1)
+    costs = []
+    parameters = initialize_parameters_deep(layers_dims)
+    for i in range(0, num_iterations):
+        AL, caches = L_model_forward(X, parameters)
+        cost = compute_cost(AL, Y)
+        grads = L_model_backward(AL, Y, caches)
+        parameters = update_parameters(parameters, grads, learning_rate)
         if print_cost and i % 100 == 0:
+            print ("Cost after iteration %i: %f" %(i, cost))
+        if (print_cost and i % 100 == 0) or plot_cost:
             costs.append(cost)
 
     if plot_cost:
@@ -300,9 +349,10 @@ class TwoLayerModel(DNN):
         '''
             Neural Network fit module
         Arguments:
-            X : datasate of shape (number of features( here is 2), number of examples)
+            X : datasate of shape (number of features, number of examples)
             Y : labels of shape  (1, number of examples)
-            verbose
+            verbose: print costs per 100 iteration
+            plot_cost: to plot costs after finishing training
         Return:
             None
         '''
@@ -317,9 +367,42 @@ class TwoLayerModel(DNN):
                         num_iterations = self.num_iterations,
                         print_cost=verbose, 
                         learning_rate = self.learning_rate)
-                        
-
 
 class LLayerModel(DNN):    
-    def __init__(self):
-        pass
+    
+    def __init__(self, layers_dims, num_iterations = 10000, learning_rate = 0.0075):
+        '''
+            Neural Network Class init
+        Arguments:
+            hidden_layer_size: size of the hidden layer
+            num_iterations: number of iterations in gradient descent loop
+            learning_rate: learning rate
+        Return:
+            None
+        '''
+        self.layers_dims = layers_dims
+        self.num_iterations = num_iterations
+        self.learning_rate = learning_rate
+        DNN.__init__(self, parameters=None)
+    
+    def fit(self, X, Y, verbose = False, plot_cost=False):
+        '''
+            Neural Network fit module
+        Arguments:
+            X : datasate of shape (number of features, number of examples)
+            Y : labels of shape  (1, number of examples)
+            verbose: print costs per 100 iteration
+            plot_cost: to plot costs after finishing training
+        Return:
+            None
+        '''
+            self.parameters = L_layer_model(X, Y, self.layers_dims, 
+                                            num_iterations = self.num_iterations,
+                                            print_cost=verbose, 
+                                            learning_rate = self.learning_rate,
+                                            plot_cost=plot_cost)
+    def model(self, X, Y, verbose=False):
+        return L_layer_model(X, Y, self.layers_dims, 
+                        num_iterations = self.num_iterations,
+                        print_cost=verbose, 
+                        learning_rate = self.learning_rate)
