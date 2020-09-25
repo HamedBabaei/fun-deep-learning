@@ -28,7 +28,7 @@ def initialize_parameters_deep(layer_dims):
     Returns:
         parameters: a dictionary containing parameters "W1", "b1",......"WL","bL"
     '''
-    np.random.seed(1)
+    np.random.seed(3)
     parameters = {}
     L = len(layer_dims)
     for l in range(1, L): 
@@ -98,18 +98,29 @@ def L_model_forward(X, parameters):
     caches.append(cache)
     return AL, caches
 
-def compute_cost(AL, Y):
+def compute_cost(AL, Y, parameters=None, lambd=0):
     '''
         Implement the cost function
     Argument:
         AL: probability vector corresponding to your label predictions in shape of (1, number of examples)
         Y: truth label
+        parameters: python dictionary containing parameters {W1: -, b1: -, ....}
+        lambd: a regularization term when its none 0 regularizaton will effect
     Returns:
-        cost: cross entropy cost
+        cost: cross entropy cost or regularized loss function
     '''
     m = Y.shape[1]
-    cost = (-1/m)*np.sum(Y*np.log(AL) + (1-Y)*np.log(1-AL))
-    cost = np.squeeze(cost)
+    #cross_entropy_cost = (-1/m)*np.sum(Y*np.log(AL) + (1-Y)*np.log(1-AL))
+    logprobs = np.multiply(-np.log(AL), Y) + np.multiply(-np.log(1 - AL), 1 - Y)
+    cross_entropy_cost = 1./m*np.nansum(logprobs)
+    cross_entropy_cost = np.squeeze(cross_entropy_cost)
+    if lambd != 0:
+        regularization_cost = np.sum([np.sum(np.square(parameters['W'+str(l+1)])) for l in range(len(parameters)//2)])
+        L2_regularization_cost = (1/m) * (lambd/2) * regularization_cost
+        cost = cross_entropy_cost + L2_regularization_cost
+        #print(regularization_cost, '  ', lambd)
+    else:
+        cost = cross_entropy_cost
     return cost
 
 def linear_backward(dZ, cache):
@@ -130,7 +141,7 @@ def linear_backward(dZ, cache):
     dA_prev = np.dot(W.T, dZ)
     return dA_prev, dW, db
 
-def linear_activation_backward(dA, cache, activation):
+def linear_activation_backward(dA, cache, activation, L2_regularization=0):
     '''
         Implement the backward propagation for the LINEAR->ACTIVATION layer
     Arguments:
@@ -146,15 +157,18 @@ def linear_activation_backward(dA, cache, activation):
     linear_cache, activation_cache = cache
     dZ = acts[activation](dA, activation_cache)
     dA_prev, dW, db = linear_backward(dZ, linear_cache)
+    if L2_regularization != 0:
+        dW += L2_regularization*linear_cache[1] # linear_cache[1] is W
     return dA_prev, dW, db
 
-def L_model_backward(AL, Y, caches):
+def L_model_backward(AL, Y, caches, L2_regularization_value=0):
     '''
         Implement the backward propogation for the [LINEAR->RELU]*(L-1) -> LINEAR -> SIGMOID group
     Arguments:
         AL: probability vector of the L_model_forward()
         Y: true label vector
         caches: list of cahces containing lists of ((A, W, b), Z)
+        lambd: a regularization value
     Returns:
         grads: a dictionary with the gradients {'dA1': -, 'dW1': -, 'db1': -}
     '''
@@ -170,7 +184,7 @@ def L_model_backward(AL, Y, caches):
                 linear_activation_backward(dAL, current_cache, activation='sigmoid')
     for l in reversed(range(L-1)):
         current_cache = caches[l]
-        dA_prev_tmp, dW_tmp, db_tmp = linear_activation_backward(grads['dA'+str(l+1)], current_cache, activation='relu')
+        dA_prev_tmp, dW_tmp, db_tmp = linear_activation_backward(grads['dA'+str(l+1)], current_cache, activation='relu', L2_regularization=L2_regularization_value)
         grads['dA'+str(l)] = dA_prev_tmp
         grads['dW'+str(l+1)] = dW_tmp
         grads['db'+str(l+1)] = db_tmp
@@ -268,6 +282,7 @@ def L_layer_model(X, Y, layers_dims, learning_rate, num_iterations=3000, print_c
     Returns:
         parameters: a dictionary containing W1, W2, b1, and b2
     '''
+    m = X.shape[1] #for regularization
     np.random.seed(1)
     costs = []
     parameters = initialize_parameters_deep(layers_dims)
@@ -280,12 +295,13 @@ def L_layer_model(X, Y, layers_dims, learning_rate, num_iterations=3000, print_c
         if lambd == 0:
             cost = compute_cost(AL, Y)
         else:
-            pass
+            cost = compute_cost(AL, Y, parameters=parameters, lambd=lambd)
 
         if lambd == 0 and keep_prob == 1:
             grads = L_model_backward(AL, Y, caches)
         elif lambd != 0 :
-            pass #backward with regularization
+            #backward with regularization
+            grads = L_model_backward(AL, Y, caches, L2_regularization_value = lambd/m)
         elif keep_prob < 1:
             pass #backward with dropout
         parameters = update_parameters(parameters, grads, learning_rate)
@@ -321,6 +337,19 @@ def predict(X, parameters):
             predictions[0,i] = 0
     return predictions
 
+def predict_dec(X, parameters):
+    '''
+        Make Prediction using learned parameters to plotting decision boundary
+    Arguments:
+        parameters: {"W1":W1, "b1":b1, "W2":W2, "b2":b2}
+        X: input data of size (n_x, m)
+    Returns:
+        predictions: vector of predictions of the model
+    ''' 
+    probas, caches = L_model_forward(X, parameters)
+    predicts = (probas > 0.5)
+    return predicts
+
 class DNN(object):
     def __init__(self, parameters):
         self.parameters = parameters
@@ -340,6 +369,16 @@ class DNN(object):
             predictions: vector of predictions of the model
         '''
         return predict(X, self.parameters)
+    
+    def predict_dec(self, X):
+        '''
+            Make Prediction using learned parameters
+        Arguments:
+            X: input data of size (n_x, m)
+        Returns:
+            predictions: vector of predictions of the model
+        '''
+        return predict_dec(X, self.parameters)
 
 class TwoLayerModel(DNN):
    
@@ -383,7 +422,7 @@ class TwoLayerModel(DNN):
 
 class LLayerModel(DNN):    
     
-    def __init__(self, layers_dims, num_iterations = 10000, learning_rate = 0.0075):
+    def __init__(self, layers_dims, num_iterations = 10000, learning_rate = 0.0075, lambd = 0, keep_prob = 1):
         '''
             Neural Network Class init
         Arguments:
@@ -396,6 +435,8 @@ class LLayerModel(DNN):
         self.layers_dims = layers_dims
         self.num_iterations = num_iterations
         self.learning_rate = learning_rate
+        self.lambd = lambd
+        self.keep_prob = keep_prob
         DNN.__init__(self, parameters=None)
     
     def fit(self, X, Y, verbose = False, plot_cost=False):
@@ -412,8 +453,11 @@ class LLayerModel(DNN):
         self.parameters = L_layer_model(X, Y, self.layers_dims, 
                                         num_iterations = self.num_iterations,
                                         print_cost=verbose, 
-                                        learning_rate = self.learning_rate,
-                                        plot_cost=plot_cost)
+                                        learning_rate=self.learning_rate,
+                                        plot_cost=plot_cost,
+                                        lambd=self.lambd,
+                                        keep_prob=self.keep_prob)
+
     def model(self, X, Y, verbose=False):
         return L_layer_model(X, Y, self.layers_dims, 
                         num_iterations = self.num_iterations,
