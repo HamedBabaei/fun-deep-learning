@@ -52,7 +52,14 @@ def linear_forward(A, W, b):
     cache = (A, W, b)
     return Z, cache
 
-def linear_activation_forward(A_prev, W, b, activation):
+def dropout(A , keep_prob):
+    D = np.random.rand(A.shape[0], A.shape[1])
+    D = (D < keep_prob).astype(int)
+    A = A*D
+    A = A/keep_prob
+    return A, D
+
+def linear_activation_forward(A_prev, W, b, activation, keep_prob = 1):
     '''
         Implement the forward propagation for the LINEAR->ACTIVATION layer
     Arguments:
@@ -67,10 +74,12 @@ def linear_activation_forward(A_prev, W, b, activation):
     acts = {"sigmoid":activations.sigmoid, "relu":activations.relu}
     Z, linear_cache = linear_forward(A_prev, W, b)
     A, activation_cache = acts[activation](Z)
-    cache = (linear_cache, activation_cache)
+    A , dropout_cache = dropout(A, keep_prob)
+    cache = (linear_cache, activation_cache, dropout_cache)
+    #print("forward cache: A:{}, dropout:{}".format( A.shape, dropout_cache.shape))
     return A, cache
 
-def L_model_forward(X, parameters):
+def L_model_forward(X, parameters, keep_prob=1):
     '''
         Implementation of forward propagation for [LINEAR->RELU]*(L-1) -> LINEAR->SIGMOID
     Arguments:
@@ -89,14 +98,22 @@ def L_model_forward(X, parameters):
         A, cache = linear_activation_forward(A_prev, 
                                              parameters["W"+str(l)], 
                                              parameters["b"+str(l)], 
-                                             activation="relu")
+                                             activation="relu", 
+                                             keep_prob=keep_prob)
         caches.append(cache)
+        #print("L forward, layer ",str(l),'::',A.shape)
     AL, cache = linear_activation_forward(A,
                                           parameters["W"+str(l+1)], 
                                           parameters["b"+str(l+1)], 
                                           activation="sigmoid")
     caches.append(cache)
+    #print("L forward, layer ",str(l),'::',AL.shape)
     return AL, caches
+
+def regularization(parameters, m, lambd):
+    regularization_cost = np.sum([np.sum(np.square(parameters['W'+str(l+1)])) for l in range(len(parameters)//2)])
+    L2_regularization_cost = (1/m) * (lambd/2) * regularization_cost
+    return L2_regularization_cost
 
 def compute_cost(AL, Y, parameters=None, lambd=0):
     '''
@@ -113,10 +130,9 @@ def compute_cost(AL, Y, parameters=None, lambd=0):
     #cross_entropy_cost = (-1/m)*np.sum(Y*np.log(AL) + (1-Y)*np.log(1-AL))
     logprobs = np.multiply(-np.log(AL), Y) + np.multiply(-np.log(1 - AL), 1 - Y)
     cross_entropy_cost = 1./m*np.nansum(logprobs)
-    cross_entropy_cost = np.squeeze(cross_entropy_cost)
+    #cross_entropy_cost = np.squeeze(cross_entropy_cost)
     if lambd != 0:
-        regularization_cost = np.sum([np.sum(np.square(parameters['W'+str(l+1)])) for l in range(len(parameters)//2)])
-        L2_regularization_cost = (1/m) * (lambd/2) * regularization_cost
+        L2_regularization_cost = regularization(parameters, m, lambd)
         cost = cross_entropy_cost + L2_regularization_cost
         #print(regularization_cost, '  ', lambd)
     else:
@@ -136,12 +152,12 @@ def linear_backward(dZ, cache):
     '''
     A_prev, W, b = cache
     m = A_prev.shape[1]
-    dW = (1/m)*np.dot(dZ, A_prev.T)
-    db = (1/m)*np.sum(dZ, axis=1, keepdims=True)
+    dW = (1./m)*np.dot(dZ, A_prev.T)
+    db = (1./m)*np.sum(dZ, axis=1, keepdims=True)
     dA_prev = np.dot(W.T, dZ)
     return dA_prev, dW, db
 
-def linear_activation_backward(dA, cache, activation, L2_regularization=0):
+def linear_activation_backward(dA, cache, activation, L2_regularization, keep_prob):
     '''
         Implement the backward propagation for the LINEAR->ACTIVATION layer
     Arguments:
@@ -154,14 +170,19 @@ def linear_activation_backward(dA, cache, activation, L2_regularization=0):
         db: gradient of the cost with respect to b
     '''
     acts = {"sigmoid":activations.sigmoid_backward, "relu":activations.relu_backward}
-    linear_cache, activation_cache = cache
+    linear_cache, activation_cache, dropout_cache = cache
+    #dropout
+    if keep_prob != 1:
+        #print('dA: ',dA.shape, '   D:', dropout_cache.shape)
+        dA = dA * dropout_cache
+        dA = dA/keep_prob
     dZ = acts[activation](dA, activation_cache)
     dA_prev, dW, db = linear_backward(dZ, linear_cache)
-    if L2_regularization != 0:
-        dW += L2_regularization*linear_cache[1] # linear_cache[1] is W
+    #regularization
+    dW += L2_regularization*linear_cache[1] # linear_cache[1] is W
     return dA_prev, dW, db
 
-def L_model_backward(AL, Y, caches, L2_regularization_value=0):
+def L_model_backward(AL, Y, caches, L2_regularization, keep_prob):
     '''
         Implement the backward propogation for the [LINEAR->RELU]*(L-1) -> LINEAR -> SIGMOID group
     Arguments:
@@ -181,10 +202,18 @@ def L_model_backward(AL, Y, caches, L2_regularization_value=0):
     # Lth layer (SIGMOID->LINEAR)
     current_cache = caches[L-1]
     grads['dA'+str(L-1)], grads['dW'+str(L)], grads['db'+str(L)] = \
-                linear_activation_backward(dAL, current_cache, activation='sigmoid')
+                                            linear_activation_backward(dAL, 
+                                                                       current_cache, 
+                                                                       activation='sigmoid',
+                                                                       L2_regularization=0, 
+                                                                       keep_prob=1)
     for l in reversed(range(L-1)):
         current_cache = caches[l]
-        dA_prev_tmp, dW_tmp, db_tmp = linear_activation_backward(grads['dA'+str(l+1)], current_cache, activation='relu', L2_regularization=L2_regularization_value)
+        dA_prev_tmp, dW_tmp, db_tmp = linear_activation_backward(grads['dA'+str(l+1)], 
+                                                                 current_cache, 
+                                                                 activation='relu', 
+                                                                 L2_regularization=L2_regularization,
+                                                                 keep_prob=keep_prob)
         grads['dA'+str(l)] = dA_prev_tmp
         grads['dW'+str(l+1)] = dW_tmp
         grads['db'+str(l+1)] = db_tmp
@@ -287,23 +316,10 @@ def L_layer_model(X, Y, layers_dims, learning_rate, num_iterations=3000, print_c
     costs = []
     parameters = initialize_parameters_deep(layers_dims)
     for i in range(0, num_iterations):
-        if keep_prob == 1:
-            AL, caches = L_model_forward(X, parameters)
-        elif keep_prob < 1:
-            pass
-
-        if lambd == 0:
-            cost = compute_cost(AL, Y)
-        else:
-            cost = compute_cost(AL, Y, parameters=parameters, lambd=lambd)
-
-        if lambd == 0 and keep_prob == 1:
-            grads = L_model_backward(AL, Y, caches)
-        elif lambd != 0 :
-            #backward with regularization
-            grads = L_model_backward(AL, Y, caches, L2_regularization_value = lambd/m)
-        elif keep_prob < 1:
-            pass #backward with dropout
+        AL, caches = L_model_forward(X, parameters, keep_prob=keep_prob)
+        cost = compute_cost(AL, Y, parameters=parameters, lambd=lambd)
+        grads = L_model_backward(AL, Y, caches, L2_regularization = lambd/m, keep_prob=keep_prob)
+        
         parameters = update_parameters(parameters, grads, learning_rate)
         if print_cost and i % 100 == 0:
             print ("Cost after iteration %i: %f" %(i, cost))
