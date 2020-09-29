@@ -82,7 +82,6 @@ def initialize_parameters_he(layer_dims):
         parameters['b' + str(l)] = np.zeros((layer_dims[l],1))
     return parameters
 
-
 def linear_forward(A, W, b):
     '''
         Implementation of the Linear part of a layer's forward propagation
