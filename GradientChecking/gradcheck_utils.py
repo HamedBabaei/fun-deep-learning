@@ -1,7 +1,49 @@
 import numpy as np
+import dnn
 
-def gradient_checking(parameters, gradients, X, Y):
-    pass
+def gradient_check(parameters, gradients, X, Y, epsilon = 1e-7):
+    '''
+        Gradient Checking method
+    Arguments:
+        parameters: a dictionary containing W1, b1, W2, b2, ....
+        gradients: a dictionary contaning dW1, db1, dW2, db2, ...
+        X: a training data
+        Y: truth labels
+        epsilon: for gradient checking
+    Returns:
+        differences
+    '''
+    parameters_values, _ = dictionary_to_vector(parameters)
+    grad = gradients_to_vector(gradients)
+    num_parameters = parameters_values.shape[0]
+    J_plus = np.zeros((num_parameters, 1))
+    J_minus = np.zeros((num_parameters, 1))
+    gradapprox = np.zeros((num_parameters, 1))
+    for i in range(num_parameters):
+    
+        thetaplus = np.copy(parameters_values)            
+        thetaplus[i][0] = thetaplus[i][0] + epsilon       
+        AL, _ = dnn.L_model_forward(X, vector_to_dictionary(thetaplus))
+        J_plus[i] = dnn.compute_cost(AL, Y) 
+        
+        thetaminus = np.copy(parameters_values)           
+        thetaminus[i][0] = thetaminus[i][0] - epsilon     
+        AL, _ = dnn.L_model_forward(X, vector_to_dictionary(thetaminus))
+        J_minus[i] = dnn.compute_cost(AL, Y) 
+
+        gradapprox[i] = (J_plus[i] - J_minus[i])/(2*epsilon)
+    
+    
+    numerator = np.linalg.norm(grad - gradapprox)                   
+    denominator = np.linalg.norm(grad) + np.linalg.norm(gradapprox) 
+    difference = numerator/denominator   
+    
+    if difference > 2e-7:
+        print ("\033[93m" + "There is a mistake in the backward propagation! difference = " + str(difference) + "\033[0m")
+    else:
+        print ("\033[92m" + "Your backward propagation works perfectly fine! difference = " + str(difference) + "\033[0m")
+    
+    return difference
 
 def dictionary_to_vector(parameters):
     """
