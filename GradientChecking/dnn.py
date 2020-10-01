@@ -227,7 +227,7 @@ def linear_activation_backward(dA, cache, activation, L2_regularization, keep_pr
     dW += L2_regularization*linear_cache[1] # linear_cache[1] is W
     return dA_prev, dW, db
 
-def L_model_backward(AL, Y, caches, L2_regularization, keep_prob):
+def L_model_backward(AL, Y, caches, L2_regularization=0, keep_prob=1):
     '''
         Implement the backward propogation for the [LINEAR->RELU]*(L-1) -> LINEAR -> SIGMOID group
     Arguments:
