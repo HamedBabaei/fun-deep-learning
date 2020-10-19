@@ -122,7 +122,6 @@ def initialize_adam(parameters):
         s['db' + str(l+1)] = np.zeros(parameters['b'+str(l+1)].shape)
     return v, s
 
-
 def linear_forward(A, W, b):
     '''
         Implementation of the Linear part of a layer's forward propagation
@@ -507,6 +506,7 @@ def L_layer_model(X, Y, layers_dims, learning_rate, optimizer="gd", mini_batch_s
     costs = []
     t = 0 # initalize counter required for Adam update
     seed = 10
+    mini_batche_print_rate = 10 if mini_batch_size > 1 else 1
     if  initialization == 'zeros':
         parameters = initialize_parameters_zeros(layers_dims)
     elif initialization == 'he':
@@ -544,9 +544,9 @@ def L_layer_model(X, Y, layers_dims, learning_rate, optimizer="gd", mini_batch_s
                                                                t, learning_rate, beta1, beta2, epsilon)
         cost_avg = cost_total/m
 
-        if print_cost and i % 100 == 0:
+        if print_cost and i % (100*mini_batche_print_rate) == 0:
             print ("Cost after iteration %i: %f" %(i, cost_avg))
-        if (print_cost and i % 100 == 0) or plot_cost:
+        if (print_cost and i % (100*mini_batche_print_rate) == 0) or plot_cost:
             costs.append(cost_avg)
 
     if plot_cost:
@@ -704,8 +704,8 @@ class LLayerModel(DNN):
                                         beta2=self.beta2, beta1=self.beta1, beta=self.beta)
 
     def model(self, X, Y, verbose=False):
-        return L_layer_model(X, Y, self.layers_dims,  num_iterations = self.num_iterations, print_cost=verbose, 
-                            learning_rate=self.learning_rate, plot_cost=plot_cost, lambd=self.lambd,
-                            keep_prob=self.keep_prob, initialization=self.initialization, optimizer=self.optimizer,
+        return L_layer_model(X, Y, self.layers_dims,  num_iterations = self.num_iterations, 
+                            learning_rate=self.learning_rate, lambd=self.lambd, keep_prob=self.keep_prob, 
+                            initialization=self.initialization, optimizer=self.optimizer,
                             mini_batch_size=self.mini_batch_size,beta2=self.beta2, beta1=self.beta1, beta=self.beta)
 
