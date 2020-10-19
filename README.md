@@ -3,7 +3,7 @@ This is my repository for my works on Deep Learning Specialization course - I am
 
 ### Courses: 
 
-**Note**: Course label is **`Course1`** for tracking all changes for this week 
+**Note 1**: Course 1 label is **`Course1`** for tracking all changes 
 
 * Week 1: **Introduction to deep learning**
 * Week 2: **Neural Networks Basics**
@@ -28,12 +28,17 @@ This is my repository for my works on Deep Learning Specialization course - I am
      * `test_dnn.py` contains unit tests
      * `DNN.ipynb` is a jupyter notebook file for demo of dnn classification
      * `dnn.py` is a deep neural network implementations. it contains `DNN` class as a base class and `TwoLayerModel`, `LLayerModel` classes as a child class of `DNN`.
+
+**Note 2**: Course 2 label is **`Course2`** for tracking all changes
+
 * Week 5: **Practical aspects of Deep Learning**
      * following directories contains `dnn.py`, `activation.py`, utils script, another script for test, and jupyter notebook as a demo
      * `Regularization` directory, L2 regularization and dorpout technique added to `dnn.py`
      * `Initialization` directory, 3 different initialization technique added to `dnn.py`
      * `GradientChecking` directory, added grad `gradcheck_utils.py` for gradient checking technique
 * Week 6: **Optimization algorithms**
+     * `Momentum` and `Adam` optmizations added into `dnn.py`, initialize methods and update parammeter methods added
+     * `Mini-batch Gradient Descent` added into `dnn.py`
 * Week 7: **Hyperparameter tuning, Batch Normalization and Programming Frameworks**
 
 
