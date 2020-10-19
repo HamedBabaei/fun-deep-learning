@@ -34,6 +34,8 @@ This is my repository for my works on Deep Learning Specialization course - I am
      * `Initialization` directory, 3 different initialization technique added to `dnn.py`
      * `GradientChecking` directory, added grad `gradcheck_utils.py` for gradient checking technique
 * Week 6: **Optimization algorithms**
+     * `Momentum` and `Adam` optmizations added into `dnn.py`, initialize methods and update parammeter methods added
+     * `Mini-batch Gradient Descent` added into `dnn.py`
 * Week 7: **Hyperparameter tuning, Batch Normalization and Programming Frameworks**
 
 
